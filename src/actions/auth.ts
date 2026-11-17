@@ -91,7 +91,10 @@ export const Login = async (formData: FormData) => {
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      return console.log("رمز نادرست است");
+      return {
+        success: false,
+        message: "ایمیل یا رمز عبور اشتباه است",
+      };
     }
 
     const token = generateToken(user._id.toString());
@@ -112,6 +115,10 @@ export const Login = async (formData: FormData) => {
     };
   } catch (error) {
     console.log(error);
+    return {
+      success: false,
+      message: "خطایی رخ داد، لطفاً دوباره تلاش کنید",
+    };
   }
 };
 

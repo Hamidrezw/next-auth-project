@@ -12,25 +12,29 @@ const SignIn = ({ onSwitch }: SignInProps) => {
   const [showPassword, setShowPassword] = useState(false);
 
   const router = useRouter();
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.currentTarget);
+
     try {
       const result = await Login(formData);
 
-      if (!result || !result.success) {
-        alert(result?.message || "ایمیل یا پسورد اشتباه است");
-        return;
+      if (!result?.success) {
+        alert(result?.message || "ایمیل یا رمز عبور اشتباه است");
+        return; 
       }
 
       router.push("/panel");
       router.refresh();
     } catch (error) {
       console.log(error);
+      alert("خطایی رخ داد، لطفاً دوباره تلاش کنید");
     }
   };
-
   return (
     <div className="w-[45%] rounded-3xl shadow-2xl p-8 bg-white">
-      <form action={handleSubmit}>
+      <form onSubmit={handleSubmit}>
         <h2 className="text-lg">ورود</h2>
 
         <label htmlFor="login-email">email</label>
