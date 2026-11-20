@@ -1,28 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import { Login } from "../actions/auth";
 import { useRouter } from "next/navigation";
+import { Login } from "../actions/auth";
+import PasswordField from "./PasswordField";
 
 type SignInProps = {
   onSwitch: () => void;
 };
 
 const SignIn = ({ onSwitch }: SignInProps) => {
-  const [showPassword, setShowPassword] = useState(false);
-
   const router = useRouter();
+  const [password, setPassword] = useState("");
+  const [isPending, setIsPending] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const formData = new FormData(e.currentTarget);
+    setIsPending(true);
 
     try {
       const result = await Login(formData);
 
       if (!result?.success) {
         alert(result?.message || "ایمیل یا رمز عبور اشتباه است");
-        return; 
+        setIsPending(false);
+        return;
       }
 
       router.push("/panel");
@@ -30,87 +34,77 @@ const SignIn = ({ onSwitch }: SignInProps) => {
     } catch (error) {
       console.log(error);
       alert("خطایی رخ داد، لطفاً دوباره تلاش کنید");
+      setIsPending(false);
     }
   };
+
   return (
-    <div className="w-[45%] rounded-3xl shadow-2xl p-8 bg-white">
-      <form onSubmit={handleSubmit}>
-        <h2 className="text-lg">ورود</h2>
+    <section className="mx-auto w-full max-w-sm rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      <header className="text-center">
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+          خوش آمدید
+        </p>
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
+          ورود به حساب
+        </h1>
+      </header>
 
-        <label htmlFor="login-email">email</label>
-        <input
-          type="text"
-          name="login-email"
-          id="login-email"
-          className="rounded-md w-full p-2 border-2 focus:outline-blue-600 my-3"
-        />
-
-        <label htmlFor="login-password">password</label>
-        <div className="relative">
-          <input
-            type={showPassword ? "text" : "password"}
-            name="login-password"
-            id="login-password"
-            className="rounded-md w-full p-2 pe-10 border-2 focus:outline-blue-600 my-3"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((prev) => !prev)}
-            aria-label={showPassword ? "مخفی کردن رمز عبور" : "نمایش رمز عبور"}
-            aria-pressed={showPassword}
-            className="absolute inset-y-0 inset-e-2 flex items-center text-gray-500 hover:text-gray-800 cursor-pointer"
+      <form onSubmit={handleSubmit} className="mt-6">
+        <div className="mb-4">
+          <label
+            htmlFor="login-email"
+            className="text-sm font-medium text-neutral-700 dark:text-neutral-300"
           >
-            {showPassword ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="size-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 5.1A9.8 9.8 0 0112 5c4.5 0 8.3 2.9 9.5 7a10.6 10.6 0 01-3 4.6M6.1 6.1A10.6 10.6 0 002.5 12c1.2 4.1 5 7 9.5 7 1.5 0 2.9-.3 4.1-.9"
-                />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="size-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M2.5 12C3.7 7.9 7.5 5 12 5s8.3 2.9 9.5 7c-1.2 4.1-5 7-9.5 7s-8.3-2.9-9.5-7z"
-                />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-            )}
-          </button>
+            ایمیل
+          </label>
+          <input
+            type="email"
+            name="login-email"
+            id="login-email"
+            autoComplete="email"
+            required
+            className="mt-1.5 block w-full rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus-visible:outline-white"
+          />
         </div>
 
-        <button className="bg-blue-600 h-11 flex justify-center items-center w-full mt-3 rounded-2xl font-bold text-white cursor-pointer">
-          ورود
+        <PasswordField
+          id="login-password"
+          name="login-password"
+          label="رمز عبور"
+          value={password}
+          onChange={setPassword}
+          autoComplete="current-password"
+        />
+
+        <button
+          type="submit"
+          disabled={isPending}
+          aria-busy={isPending}
+          className="mt-2 inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-neutral-900 text-base font-medium text-white transition-colors hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 dark:focus-visible:outline-white"
+        >
+          {isPending && (
+            <span
+              aria-hidden="true"
+              className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white dark:border-neutral-900/30 dark:border-t-neutral-900"
+            />
+          )}
+          {isPending ? "در حال ورود…" : "ورود"}
         </button>
       </form>
 
-      <p className="mt-4 text-center text-sm text-gray-600">
+      <hr className="my-6 border-neutral-200 dark:border-neutral-800" />
+
+      <p className="text-center text-sm text-neutral-600 dark:text-neutral-400">
         حساب کاربری ندارید؟{" "}
         <button
           type="button"
           onClick={onSwitch}
-          className="text-blue-600 font-semibold hover:underline cursor-pointer"
+          className="cursor-pointer font-medium text-neutral-900 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 dark:text-white dark:focus-visible:outline-white"
         >
           ثبت‌نام
         </button>
       </p>
-    </div>
+    </section>
   );
 };
 

@@ -2,125 +2,77 @@
 
 import { useState } from "react";
 import { Register } from "../actions/auth";
+import PasswordField from "./PasswordField";
 
 type SignUpProps = {
   onSwitch: () => void;
 };
 
-type PasswordFieldProps = {
-  id: string;
-  name?: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-};
+const inputClass =
+  "mt-1.5 block w-full rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus-visible:outline-white";
 
-const PasswordField = ({
-  id,
-  name,
-  label,
-  value,
-  onChange,
-}: PasswordFieldProps) => {
-  const [show, setShow] = useState(false);
-
-  return (
-    <>
-      <label htmlFor={id}>{label}</label>
-      <div className="relative">
-        <input
-          type={show ? "text" : "password"}
-          name={name}
-          id={id}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          required
-          className="rounded-md w-full p-2 pe-10 border-2 focus:outline-blue-600 my-3"
-        />
-        <button
-          type="button"
-          onClick={() => setShow((prev) => !prev)}
-          aria-label={show ? "مخفی کردن رمز عبور" : "نمایش رمز عبور"}
-          aria-pressed={show}
-          className="absolute inset-y-0 inset-e-2 flex items-center text-gray-500 hover:text-gray-800 cursor-pointer"
-        >
-          {show ? (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="size-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 5.1A9.8 9.8 0 0112 5c4.5 0 8.3 2.9 9.5 7a10.6 10.6 0 01-3 4.6M6.1 6.1A10.6 10.6 0 002.5 12c1.2 4.1 5 7 9.5 7 1.5 0 2.9-.3 4.1-.9"
-              />
-            </svg>
-          ) : (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="size-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M2.5 12C3.7 7.9 7.5 5 12 5s8.3 2.9 9.5 7c-1.2 4.1-5 7-9.5 7s-8.3-2.9-9.5-7z"
-              />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-          )}
-        </button>
-      </div>
-    </>
-  );
-};
+const labelClass = "text-sm font-medium text-neutral-700 dark:text-neutral-300";
 
 const SignUp = ({ onSwitch }: SignUpProps) => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState("");
 
   const mismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
-
-const handleSubmit = async (formData: FormData) => {
-  const result = await Register(formData);
-     if (!result) {
-      return console.log("sign up informatiom is not valid!!!");
+  const handleSubmit = async (formData: FormData) => {
+    setError("");
+    setIsPending(true);
+    try {
+      const result = await Register(formData);
+      if (!result) {
+        setError("اطلاعات ثبت‌نام معتبر نیست");
+      }
+    } finally {
+      setIsPending(false);
     }
-
-};
+  };
 
   return (
-    <div className="w-[45%] rounded-3xl shadow-2xl p-8 bg-white">
-      <form action={handleSubmit} >
-        <h2 className="text-lg mb-3">ثبت‌نام</h2>
+    <section className="mx-auto w-full max-w-sm rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      <header className="text-center">
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+          حساب جدید
+        </p>
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
+          ثبت‌نام
+        </h1>
+      </header>
 
-        <div>
-          <label htmlFor="name">نام</label>
+      <form action={handleSubmit} className="mt-6">
+        <div className="mb-4">
+          <label htmlFor="name" className={labelClass}>
+            نام
+          </label>
           <input
             type="text"
             name="name"
             id="name"
+            autoComplete="name"
             required
-            className="rounded-md w-full p-2 border-2 focus:outline-blue-600 my-3"
+            className={inputClass}
           />
         </div>
 
-        <label htmlFor="email">ایمیل</label>
-        <input
-          type="email"
-          name="email"
-          id="email"
-          required
-          className="rounded-md w-full p-2 border-2 focus:outline-blue-600 my-3"
-        />
+        <div className="mb-4">
+          <label htmlFor="email" className={labelClass}>
+            ایمیل
+          </label>
+          <input
+            type="email"
+            name="email"
+            id="email"
+            autoComplete="email"
+            required
+            className={inputClass}
+          />
+        </div>
 
         <PasswordField
           id="password"
@@ -128,6 +80,7 @@ const handleSubmit = async (formData: FormData) => {
           label="رمز عبور"
           value={password}
           onChange={setPassword}
+          autoComplete="new-password"
         />
 
         <PasswordField
@@ -136,34 +89,51 @@ const handleSubmit = async (formData: FormData) => {
           label="تکرار رمز عبور"
           value={confirmPassword}
           onChange={setConfirmPassword}
+          autoComplete="new-password"
+          invalid={mismatch}
         />
 
         {mismatch && (
-          <p role="alert" className="text-red-600 text-sm mt-1">
+          <p role="alert" className="-mt-2 mb-4 text-sm text-red-600">
             رمز عبور و تکرار آن یکسان نیستند
+          </p>
+        )}
+
+        {error && (
+          <p role="alert" className="mb-4 text-sm text-red-600">
+            {error}
           </p>
         )}
 
         <button
           type="submit"
-          disabled={mismatch}
-          className="bg-blue-600 h-11 flex justify-center items-center w-full mt-3 rounded-2xl font-bold text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={mismatch || isPending}
+          aria-busy={isPending}
+          className="mt-2 inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-neutral-900 text-base font-medium text-white transition-colors hover:bg-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 dark:focus-visible:outline-white"
         >
-          ثبت‌نام
+          {isPending && (
+            <span
+              aria-hidden="true"
+              className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white dark:border-neutral-900/30 dark:border-t-neutral-900"
+            />
+          )}
+          {isPending ? "در حال ثبت‌نام…" : "ثبت‌نام"}
         </button>
       </form>
 
-      <p className="mt-4 text-center text-sm text-gray-600">
+      <hr className="my-6 border-neutral-200 dark:border-neutral-800" />
+
+      <p className="text-center text-sm text-neutral-600 dark:text-neutral-400">
         قبلاً ثبت‌نام کرده‌اید؟{" "}
         <button
           type="button"
           onClick={onSwitch}
-          className="text-blue-600 font-semibold hover:underline cursor-pointer"
+          className="cursor-pointer font-medium text-neutral-900 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 dark:text-white dark:focus-visible:outline-white"
         >
           ورود
         </button>
       </p>
-    </div>
+    </section>
   );
 };
 
